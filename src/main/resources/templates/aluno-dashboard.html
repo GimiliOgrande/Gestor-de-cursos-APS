@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Aluno Dashboard</title>
+
+    <style>
+
+        body{
+        font-family:Arial;
+        background:#b2d5ba;
+        margin:0;
+        overflow-x:hidden;
+        }
+
+        header{
+        background:#248f8d;
+        color:white;
+        padding:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:relative;
+        }
+
+        .menu-btn{
+        position:absolute;
+        left:20px;
+        font-size:24px;
+        background:none;
+        border:none;
+        color:white;
+        cursor:pointer;
+        }
+
+        .container{
+        max-width:900px;
+        margin:auto;
+        padding:30px;
+        }
+
+        .curso{
+        background:white;
+        padding:20px;
+        border-radius:12px;
+        margin-bottom:20px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        button{
+        background:#248f8d;
+        color:white;
+        border:none;
+        padding:10px 15px;
+        border-radius:6px;
+        cursor:pointer;
+        margin-top:10px;
+        }
+
+        button:hover{
+        background:#61ada0;
+        }
+
+        .user-info{
+        position:absolute;
+        right:20px;
+        font-weight:bold;
+        }
+
+        .logout-btn{
+        margin-left:10px;
+        background:#e74c3c;
+        padding:6px 10px;
+        font-size:14px;
+        }
+
+        .logout-btn:hover{
+        background:#c0392b;
+        }
+
+
+        /* MENU LATERAL */
+
+        .sidebar{
+        position:fixed;
+        top:0;
+        left:0;
+        width:300px;
+        height:100%;
+        background:white;
+        padding:20px;
+        overflow-y:auto;
+
+        /* ESCONDE COMPLETAMENTE */
+        transform:translateX(-100%);
+
+        transition:transform 0.3s ease;
+        z-index:1000;
+        }
+
+        .sidebar.active{
+        transform:translateX(0);
+        box-shadow:3px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar h3{
+        color:#605063;
+        }
+
+        .meu-curso{
+        background:#f5f5f5;
+        padding:10px;
+        border-radius:6px;
+        margin-bottom:10px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<header>
+
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+    <h2>Dashboard do Aluno</h2>
+
+    <div class="user-info">
+        <span id="nomeUsuario"></span>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+</header>
+
+
+<!-- MENU LATERAL -->
+
+<div class="sidebar" id="sidebar">
+
+    <h3>Meus Cursos</h3>
+
+    <div id="meusCursos"></div>
+
+</div>
+
+
+<div class="container">
+
+    <h3>Cursos Disponíveis</h3>
+
+    <div id="listaCursos"></div>
+
+</div>
+
+<script>
+
+    /* MENU */
+
+    function toggleMenu(){
+
+    const sidebar = document.getElementById("sidebar");
+
+    sidebar.classList.toggle("active");
+
+    carregarMeusCursos();
+
+    }
+
+
+    /*
+    CARREGAR CURSOS DISPONÍVEIS
+    */
+
+    async function carregarCursos(){
+
+    const response = await fetch("/cursos");
+
+    const cursos = await response.json();
+
+    const lista = document.getElementById("listaCursos");
+
+    lista.innerHTML = "";
+
+    cursos.forEach(curso =>{
+
+    const div = document.createElement("div");
+
+    div.classList.add("curso");
+
+    div.innerHTML = `
+    <strong>${curso.nome}</strong><br>
+    ${curso.descricao}<br><br>
+
+    <button onclick="matricular(${curso.id})">Matricular</button>
+    `;
+
+    lista.appendChild(div);
+
+    });
+
+    }
+
+
+    /*
+    MATRICULAR
+    */
+
+    async function matricular(cursoId){
+
+    try{
+
+    const response = await fetch("/aluno/matricular",{
+    method:"POST",
+    headers:{
+    "Content-Type":"application/x-www-form-urlencoded"
+    },
+    body:`cursoId=${cursoId}`
+    });
+
+    const mensagem = await response.text();
+
+    alert(mensagem);
+
+    carregarMeusCursos();
+
+    }catch(e){
+
+    alert("Erro ao matricular");
+
+    }
+
+    }
+
+
+    /*
+    CARREGAR MEUS CURSOS
+    */
+
+    async function carregarMeusCursos(){
+
+    const response = await fetch("/aluno/meus-cursos");
+
+    const cursos = await response.json();
+
+    const lista = document.getElementById("meusCursos");
+
+    lista.innerHTML = "";
+
+    if(cursos.length === 0){
+
+    lista.innerHTML = "Nenhum curso matriculado";
+
+    return;
+
+    }
+
+    cursos.forEach(curso =>{
+
+    const div = document.createElement("div");
+
+    div.classList.add("meu-curso");
+
+    div.innerHTML = `
+    <strong>${curso.nome}</strong>
+    `;
+
+    div.style.cursor = "pointer";
+
+    /* quando clicar abre a página do curso */
+    div.onclick = () => {
+        window.location.href = `/curso/${curso.id}`;    };
+
+    lista.appendChild(div);
+
+    });
+
+    }
+
+    async function carregarUsuario(){
+
+try{
+
+    const response = await fetch("/usuario-logado");
+
+    const usuario = await response.json();
+
+    document.getElementById("nomeUsuario").innerText = usuario.nome;
+
+    }catch(e){
+
+    console.log("Erro ao carregar usuário");
+
+    }
+
+    }
+
+    function logout(){
+
+        localStorage.removeItem("token");
+
+        window.location.href = "/login.html";
+    }
+
+    carregarUsuario();
+
+    carregarCursos();
+
+</script>
+
+</body>
+</html>

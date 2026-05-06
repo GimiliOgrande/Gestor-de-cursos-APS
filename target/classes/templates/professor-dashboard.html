@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Professor Dashboard</title>
+
+    <style>
+
+        body{
+        font-family:Arial;
+        background:#b2d5ba;
+        margin:0;
+        }
+
+        header{
+        background:#248f8d;
+        color:white;
+        padding:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:relative;
+        }
+
+        /* USER INFO */
+
+        .user-info{
+        position:absolute;
+        right:70px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-weight:bold;
+        }
+
+        .logout-btn{
+        background:#e74c3c;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        color:white;
+        cursor:pointer;
+        font-size:14px;
+        }
+
+        .logout-btn:hover{
+        background:#c0392b;
+        }
+
+        .container{
+        max-width:900px;
+        margin:auto;
+        padding:30px;
+        }
+
+        .curso{
+        background:white;
+        padding:20px;
+        border-radius:12px;
+        margin-bottom:20px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        button{
+        background:#248f8d;
+        color:white;
+        border:none;
+        padding:8px 14px;
+        border-radius:6px;
+        cursor:pointer;
+        margin-right:8px;
+        margin-top:5px;
+        }
+
+        button:hover{
+        background:#61ada0;
+        }
+
+        /* NOTIFICAÇÕES */
+
+        .notificacao-container{
+        position:absolute;
+        right:20px;
+        top:15px;
+        }
+
+        .notificacao-btn{
+        font-size:22px;
+        background:transparent;
+        border:none;
+        color:white;
+        cursor:pointer;
+        }
+
+        .notificacao-badge{
+        position:absolute;
+        top:-5px;
+        right:-5px;
+        background:red;
+        color:white;
+        border-radius:50%;
+        font-size:12px;
+        padding:3px 6px;
+        }
+
+        .notificacao-panel{
+        display:none;
+        position:absolute;
+        right:20px;
+        top:60px;
+        width:320px;
+        background:white;
+        border-radius:10px;
+        box-shadow:0 10px 25px rgba(0,0,0,0.2);
+        max-height:300px;
+        overflow-y:auto;
+        }
+
+        .notificacao-item{
+        padding:12px;
+        border-bottom:1px solid #eee;
+        }
+
+        .notificacao-item:hover{
+        background:#f7f7f7;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <h2>Dashboard do Professor</h2>
+
+    <div class="user-info">
+        <span id="nomeUsuario"></span>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+    <div class="notificacao-container">
+
+        <button class="notificacao-btn" onclick="toggleNotificacoes()">
+            🔔
+        </button>
+
+        <div id="notificacaoBadge" class="notificacao-badge" style="display:none"></div>
+
+    </div>
+
+</header>
+
+<div id="notificacaoPanel" class="notificacao-panel"></div>
+
+<div class="container">
+
+    <h3>Meus Cursos</h3>
+
+    <div id="listaCursos"></div>
+
+</div>
+
+<script>
+
+    /*
+       USUÁRIO LOGADO
+    */
+
+    async function carregarUsuario(){
+
+    try{
+
+    const response = await fetch("/usuario-logado");
+    const usuario = await response.json();
+
+    document.getElementById("nomeUsuario").innerText = usuario.nome;
+
+    }catch(e){
+
+    console.log("Erro ao carregar usuário");
+
+    }
+
+    }
+
+    /*
+       LOGOUT
+    */
+
+    function logout(){
+
+    localStorage.removeItem("token");
+
+    window.location.href = "/login.html";
+
+    }
+
+    /*
+       CURSOS
+    */
+
+    async function carregarCursos() {
+
+    const response = await fetch("/professor/cursos");
+    const cursos = await response.json();
+
+    const lista = document.getElementById("listaCursos");
+    lista.innerHTML = "";
+
+    cursos.forEach(curso => {
+
+    const div = document.createElement("div");
+    div.classList.add("curso");
+
+    div.innerHTML = `
+    <strong>${curso.nome}</strong><br>
+    ${curso.descricao}<br><br>
+
+    <button onclick="verAlunos(${curso.id})">
+    Ver Alunos
+    </button>
+
+    <button onclick="adicionarAula(${curso.id})">
+    ➕ Adicionar Aula
+    </button>
+
+    <button onclick="adicionarAtividade(${curso.id})">
+    📝 Adicionar Atividade
+    </button>
+
+    <div id="alunos-${curso.id}"></div>
+    `;
+
+    lista.appendChild(div);
+    });
+
+    }
+
+    /*
+       VER ALUNOS
+    */
+
+    async function verAlunos(cursoId) {
+
+    const response = await fetch(`/professor/cursos/${cursoId}/alunos`);
+    const alunos = await response.json();
+
+    const container = document.getElementById(`alunos-${cursoId}`);
+    container.innerHTML = "";
+
+    if (alunos.length === 0) {
+    container.innerHTML = "<p>Nenhum aluno matriculado</p>";
+    return;
+    }
+
+    alunos.forEach(aluno => {
+
+    const p = document.createElement("p");
+    p.innerText = `${aluno.nome} (${aluno.email})`;
+
+    container.appendChild(p);
+    });
+    }
+
+    /*
+       BOTÕES (SEM LÓGICA AINDA)
+    */
+
+    function adicionarAula(cursoId){
+
+    alert("Funcionalidade de adicionar aula ainda será implementada.");
+
+    }
+
+    function adicionarAtividade(cursoId){
+
+    alert("Funcionalidade de adicionar atividade ainda será implementada.");
+
+    }
+
+    /*
+       NOTIFICAÇÕES
+    */
+
+    async function carregarNotificacoes() {
+
+    const response = await fetch("/professor/notificacoes");
+    const notificacoes = await response.json();
+
+    const panel = document.getElementById("notificacaoPanel");
+    const badge = document.getElementById("notificacaoBadge");
+
+    panel.innerHTML = "";
+
+    if (notificacoes.length > 0) {
+
+    badge.style.display = "block";
+    badge.innerText = notificacoes.length;
+
+    } else {
+
+    badge.style.display = "none";
+    }
+
+    notificacoes.forEach(n => {
+
+    const div = document.createElement("div");
+    div.classList.add("notificacao-item");
+
+    div.innerHTML = `🔔 ${n.mensagem}`;
+
+    panel.appendChild(div);
+    });
+    }
+
+    /*
+       ABRIR NOTIFICAÇÕES
+    */
+
+    async function toggleNotificacoes() {
+
+    const panel = document.getElementById("notificacaoPanel");
+
+    if (panel.style.display === "block") {
+
+    panel.style.display = "none";
+
+    } else {
+
+    panel.style.display = "block";
+
+    await fetch("/professor/notificacoes/marcar-lidas", {
+    method: "POST"
+    });
+
+    carregarNotificacoes();
+    }
+    }
+
+    /*
+       INICIALIZAÇÃO
+    */
+
+    carregarUsuario();
+    carregarCursos();
+    carregarNotificacoes();
+
+    setInterval(carregarNotificacoes, 5000);
+
+</script>
+
+</body>
+</html>

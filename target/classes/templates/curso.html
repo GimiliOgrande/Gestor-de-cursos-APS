@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Página do Curso</title>
+
+    <style>
+
+        body{
+        font-family:Arial;
+        background:#b2d5ba;
+        margin:0;
+        }
+
+        /* HEADER */
+
+        header{
+        background:#248f8d;
+        color:white;
+        padding:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:relative;
+        }
+
+        .user-info{
+        position:absolute;
+        right:20px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-weight:bold;
+        }
+
+        .logout-btn{
+        background:#e74c3c;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        color:white;
+        cursor:pointer;
+        font-size:14px;
+        }
+
+        .logout-btn:hover{
+        background:#c0392b;
+        }
+
+        /* CONTAINER */
+
+        .container{
+        max-width:1100px;
+        margin:auto;
+        padding:30px;
+        }
+
+        /* CARD PADRÃO */
+
+        .card{
+        background:white;
+        padding:25px;
+        border-radius:12px;
+        margin-bottom:25px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h3{
+        color:#248f8d;
+        margin-bottom:15px;
+        }
+
+        /* VIDEOS */
+
+        .video{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:15px;
+        border-bottom:1px solid #eee;
+        }
+
+        .video:last-child{
+        border-bottom:none;
+        }
+
+        .video-info{
+        display:flex;
+        flex-direction:column;
+        }
+
+        .video-title{
+        font-weight:bold;
+        }
+
+        .video-duration{
+        font-size:14px;
+        color:#666;
+        }
+
+        .play-btn{
+        background:#248f8d;
+        color:white;
+        border:none;
+        padding:8px 14px;
+        border-radius:6px;
+        cursor:pointer;
+        }
+
+        .play-btn:hover{
+        background:#61ada0;
+        }
+
+        /* ATIVIDADES */
+
+        .atividade{
+        padding:15px;
+        border-bottom:1px solid #eee;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        }
+
+        .atividade:last-child{
+        border-bottom:none;
+        }
+
+        .atividade-titulo{
+        font-weight:bold;
+        }
+
+        .atividade-status{
+        font-size:14px;
+        color:#777;
+        }
+
+        .entregar-btn{
+        background:#605063;
+        color:white;
+        border:none;
+        padding:8px 14px;
+        border-radius:6px;
+        cursor:pointer;
+        }
+
+        .entregar-btn:hover{
+        background:#7d6d80;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<header>
+
+    <h2>Curso</h2>
+
+    <div class="user-info">
+        <span id="nomeUsuario"></span>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+</header>
+
+<div class="container">
+
+    <!-- SEÇÃO DE VÍDEOS -->
+
+    <div class="card">
+
+        <h3>🎥 Aulas em Vídeo</h3>
+
+        <div class="video">
+
+            <div class="video-info">
+                <div class="video-title">Aula 1 - Introdução ao Curso</div>
+                <div class="video-duration">Duração: 12 min</div>
+            </div>
+
+            <button class="play-btn">Assistir</button>
+
+        </div>
+
+        <div class="video">
+
+            <div class="video-info">
+                <div class="video-title">Aula 2 - Variáveis em Java</div>
+                <div class="video-duration">Duração: 18 min</div>
+            </div>
+
+            <button class="play-btn">Assistir</button>
+
+        </div>
+
+        <div class="video">
+
+            <div class="video-info">
+                <div class="video-title">Aula 3 - Estruturas Condicionais</div>
+                <div class="video-duration">Duração: 22 min</div>
+            </div>
+
+            <button class="play-btn">Assistir</button>
+
+        </div>
+
+    </div>
+
+
+    <!-- SEÇÃO DE ATIVIDADES -->
+
+    <div class="card">
+
+        <h3>📝 Atividades</h3>
+
+        <div class="atividade">
+
+            <div>
+                <div class="atividade-titulo">Lista de Exercícios 1</div>
+                <div class="atividade-status">Prazo: 20/07</div>
+            </div>
+
+            <button class="entregar-btn">Enviar</button>
+
+        </div>
+
+        <div class="atividade">
+
+            <div>
+                <div class="atividade-titulo">Lista de Exercícios 2</div>
+                <div class="atividade-status">Prazo: 25/07</div>
+            </div>
+
+            <button class="entregar-btn">Enviar</button>
+
+        </div>
+
+        <div class="atividade">
+
+            <div>
+                <div class="atividade-titulo">Projeto Final</div>
+                <div class="atividade-status">Prazo: 10/08</div>
+            </div>
+
+            <button class="entregar-btn">Enviar</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    async function carregarUsuario(){
+
+    try{
+
+    const response = await fetch("/usuario-logado");
+
+    const usuario = await response.json();
+
+    document.getElementById("nomeUsuario").innerText = usuario.nome;
+
+    }catch(e){
+
+    console.log("Erro ao carregar usuário");
+
+    }
+
+    }
+
+    function logout(){
+
+    localStorage.removeItem("token");
+
+    window.location.href = "/login.html";
+
+    }
+
+    carregarUsuario();
+
+</script>
+
+</body>
+</html>

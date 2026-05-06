@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+
+<h2>Dashboard</h2>
+
+<button onclick="carregarPerfil()">Ver Perfil</button>
+<button onclick="logout()">Logout</button>
+
+<pre id="resultado"></pre>
+
+<script>
+
+    // 🔒 Protege a página ao carregar
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("Você precisa fazer login");
+        window.location.href = "/login.html";
+    }
+
+    async function carregarPerfil() {
+
+        const response = await fetch("/perfil", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            alert("Sessão inválida ou expirada");
+            localStorage.removeItem("token");
+            window.location.href = "/login.html";
+            return;
+        }
+
+        const texto = await response.text();
+        document.getElementById("resultado").innerText = texto;
+    }
+
+    function logout() {
+        const confirmar = confirm("Tem certeza que deseja sair?");
+
+        if (confirmar) {
+            localStorage.removeItem("token");
+            window.location.href = "/login.html";
+        }
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+
+    <style>
+
+        body{
+        font-family:Arial;
+        background:#b2d5ba;
+        margin:0;
+        }
+
+        header{
+        background:#248f8d;
+        color:white;
+        padding:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        position:relative;
+        }
+
+        .user-info{
+        position:absolute;
+        right:20px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-weight:bold;
+        }
+
+        .logout-btn{
+        background:#e74c3c;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        color:white;
+        cursor:pointer;
+        font-size:14px;
+        }
+
+        .logout-btn:hover{
+        background:#c0392b;
+        }
+
+        .container{
+        max-width:900px;
+        margin:auto;
+        padding:30px;
+        }
+
+        .card{
+        background:white;
+        padding:25px;
+        border-radius:12px;
+        margin-bottom:25px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h3{
+        color:#605063;
+        margin-bottom:15px;
+        }
+
+        input, select{
+        width:100%;
+        padding:10px;
+        margin:8px 0;
+        border-radius:6px;
+        border:1px solid #ccc;
+        }
+
+        button{
+        background:#248f8d;
+        color:white;
+        border:none;
+        padding:10px;
+        border-radius:6px;
+        cursor:pointer;
+        }
+
+        button:hover{
+        background:#61ada0;
+        }
+
+        .delete-btn{
+        background:#d9534f;
+        }
+
+        .delete-btn:hover{
+        background:#b52b27;
+        }
+
+        .curso{
+        padding:15px;
+        border-bottom:1px solid #eee;
+        }
+
+        .professor-label{
+        font-size:14px;
+        color:#555;
+        margin-top:5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+
+    <h2>Admin Dashboard</h2>
+
+    <div class="user-info">
+        <span id="nomeUsuario"></span>
+        <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+</header>
+
+<div class="container">
+
+    <!-- CRIAR CURSO -->
+    <div class="card">
+
+        <h3>Criar Curso</h3>
+
+        <form method="POST" action="/admin/cursos">
+
+            <input type="text" name="nome" placeholder="Nome do curso" required>
+
+            <input type="text" name="descricao" placeholder="Descrição" required>
+
+            <label class="professor-label">Selecionar Professor</label>
+
+            <select name="professorId" id="professorSelect" required>
+                <option value="">Carregando professores...</option>
+            </select>
+
+            <button type="submit">Criar Curso</button>
+
+        </form>
+
+    </div>
+
+
+    <!-- LISTAR / EDITAR CURSOS -->
+    <div class="card">
+
+        <h3>Lista de Cursos</h3>
+
+        <button onclick="carregarCursos()">Atualizar Lista</button>
+
+        <div id="listaCursos"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+    /*
+       CARREGAR USUÁRIO
+    */
+
+    async function carregarUsuario(){
+
+        try{
+
+            const response = await fetch("/usuario-logado");
+            const usuario = await response.json();
+
+            document.getElementById("nomeUsuario").innerText = usuario.nome;
+
+        }catch(e){
+
+            console.log("Erro ao carregar usuário");
+
+        }
+    }
+
+
+    /*
+       LOGOUT
+    */
+
+    function logout(){
+
+        localStorage.removeItem("token");
+
+        window.location.href = "/login.html";
+    }
+
+
+    /*
+       CARREGAR PROFESSORES
+    */
+
+    async function carregarProfessores(){
+
+    const response = await fetch("/admin/professores");
+    const professores = await response.json();
+
+    const select = document.getElementById("professorSelect");
+
+    select.innerHTML = '<option value="">Selecione um professor</option>';
+
+    professores.forEach(prof =>{
+
+    const option = document.createElement("option");
+
+    option.value = prof.id;
+    option.textContent = prof.nome + " (" + prof.email + ")";
+
+    select.appendChild(option);
+
+    });
+
+    }
+
+
+    /*
+       CARREGAR CURSOS
+    */
+
+    async function carregarCursos(){
+
+    const response = await fetch("/admin/cursos");
+    const cursos = await response.json();
+
+    const lista = document.getElementById("listaCursos");
+    lista.innerHTML = "";
+
+    cursos.forEach(curso =>{
+
+    const div = document.createElement("div");
+    div.classList.add("curso");
+
+    div.innerHTML = `
+    <input value="${curso.nome}" id="nome-${curso.id}">
+    <input value="${curso.descricao}" id="desc-${curso.id}">
+
+    <p>Professor ID: ${curso.professorId}</p>
+
+    <button onclick="editarCurso(${curso.id})">Salvar</button>
+
+    <button class="delete-btn" onclick="deletarCurso(${curso.id})">
+    Deletar
+    </button>
+    `;
+
+    lista.appendChild(div);
+
+    });
+
+    }
+
+
+    /*
+       EDITAR CURSO
+    */
+
+    async function editarCurso(id){
+
+    const nome = document.getElementById(`nome-${id}`).value;
+    const descricao = document.getElementById(`desc-${id}`).value;
+
+    await fetch(`/admin/cursos/${id}`,{
+    method:"PUT",
+    headers:{
+    "Content-Type":"application/x-www-form-urlencoded"
+    },
+    body:`nome=${nome}&descricao=${descricao}`
+    });
+
+    alert("Curso atualizado!");
+
+    carregarCursos();
+
+    }
+
+
+    /*
+       DELETAR CURSO
+     */
+
+    async function deletarCurso(id){
+
+    if(!confirm("Tem certeza que deseja deletar este curso?")) return;
+
+    await fetch(`/admin/cursos/${id}`,{
+    method:"DELETE"
+    });
+
+    carregarCursos();
+
+    }
+
+
+    /*
+       INICIALIZAÇÃO
+    */
+
+    carregarUsuario();
+    carregarCursos();
+    carregarProfessores();
+
+</script>
+
+</body>
+</html>
